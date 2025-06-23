@@ -1,0 +1,153 @@
+MIT License (with Commercial Use Restriction)
+
+⚠️ This is not a standard MIT License.  
+This version includes additional restrictions under the Commons Clause and other custom conditions. Please read fully.
+
+Copyright (c) 2025 Privacy License
+
+⚠️ Non-commercial use only
+
+Without a formal commercial license from [nabanita@privacylicense.com](mailto:nabanita@privacylicense.com) or [https://privacylicense.ai](https://privacylicense.ai), you may not:
+
+- Use this software in any commercial product, service, or internal business operation
+- Modify, adapt, or extend this code for commercial purposes
+- Integrate this code into SaaS tools, consulting services, or client deliverables
+- Use this project in accelerators, hackathons, pitch competitions, incubators, or funding applications without prior written consent
+
+Accessing, cloning, or downloading this repository constitutes agreement to these license terms.
+
+---
+
+🔒 What Constitutes Commercial Use?
+
+The following activities **require a commercial license**:
+
+- Use by **for-profit companies**, consulting firms, contractors, or independent professionals as part of business operations
+- Deployment in **internal tools**, **production systems**, or **client-facing products**
+- Inclusion in **commercial platforms**, packaged services, or any monetized product
+- Use by **enterprise teams** or organizations, regardless of internal vs. external usage
+
+
+--------
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software for personal, educational, and non-commercial use only, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Violation of this license may result in legal action or DMCA takedown notices.
+
+Any modified versions of this software must retain this license in full and preserve attribution.
+
+
+
+================================================================================
+COMMONS CLAUSE RESTRICTION
+================================================================================
+
+The above license is subject to the Commons Clause License Condition v1.0
+attached hereto. Notwithstanding the foregoing, you may not use this software
+for commercial purposes, advantage or monetary compensation including but not limited to:
+
+- Selling the software or any derivative works
+- Providing commercial services that use this software
+- Distributing the software for commercial gain
+- Including the software in commercial products
+- Internal deployment by for-profit companies
+- Inclusion in any business-related offering
+- Use in SaaS tools
+- Using it in hackathons, pitch competitions, startup accelerators, incubators, innovation challenges, coding contests, or any competitive evaluations
+
+For commercial use, you must obtain a separate commercial license from the
+copyright holder.
+
+These above restrictions apply to third-party users only.
+The original author (Privacy License) retains full rights to use this software in any context, including hackathons, demos, accelerator programs, and competitive evaluations.
+
+================================================================================
+COMMERCIAL LICENSING
+================================================================================
+
+For commercial use, including selling, distributing, or providing commercial
+services with this software or discuss enterprise use cases, please contact: 
+Email: nabanita@privacylicense.com 
+Website: https://privacylicense.ai/
+
+
+================================================================================
+ATTRIBUTION REQUIREMENT
+================================================================================
+
+When using this software, you must prominently display:
+- "Privacy Guardian Agents by Privacy License" in all uses
+- A link to the original repository
+- The copyright notice and license text
+
+Examples of proper attribution:
+- "Powered by Privacy License"
+- "Built with Privacy Guardian Agents by Privacy License - https://gitlab.com/tnabanitade/privacysdk"
+- "Privacy analysis with Privacy Guardian Agents by Privacy License"
+
+Any modified versions of this software must retain this license in full and preserve attribution.
+
+================================================================================
+Hackathon and Competition Restriction
+================================================================================
+
+The Software may not be used, in whole or in part, for the purpose of submission to, or participation in:
+
+- Hackathons  
+- Pitch competitions  
+- Startup accelerators or incubators  
+- Innovation challenges  
+- Coding contests  
+- Competitive evaluations or funding applications  
+
+by any party **other than the copyright holder**, without **prior written permission**.
+
+To request permission for such use, please contact:  
+📧 nabanita@privacylicense.com  
+🌐 https://privacylicense.ai
+
+
+================================================================================
+COMMONS CLAUSE LICENSE CONDITION v1.0
+================================================================================
+
+The Software is provided to you by the Licensor under the License, as defined below, subject to the following condition.
+
+Without limiting other conditions in the License, the grant of rights under the License will not include, and the License does not grant to you, the right to **Sell the Software**.
+
+For purposes of the foregoing, “Sell” means practicing any or all of the rights granted to you under the License to provide to third parties, for a fee or other consideration (including without limitation fees for hosting or consulting/support services related to the Software), a product or service whose value derives, entirely or substantially, from the functionality of the Software.
+
+Any license notice or attribution required by the License must also include this Commons Clause License Condition.
+
+License: MIT License (with Commercial Use Restriction)
+Licensor: Nabanita De, Privacy License, https://privacylicense.ai
+
+================================================================================
+ENFORCEMENT
+================================================================================
+
+Any unauthorized commercial use constitutes a violation of this license. We reserve the right to:
+- Revoke access and usage rights
+- Pursue legal recourse if necessary
+- Publicly flag violating companies if license abuse is detected
+
+================================================================================
+LICENSE VERSION
+================================================================================
+
+This is version 1.0 of the MIT License with Commons Clause.
+Last updated: June 13th, 2025

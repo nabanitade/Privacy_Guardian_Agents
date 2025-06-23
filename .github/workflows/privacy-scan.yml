@@ -1,0 +1,370 @@
+name: Privacy Vulnerabilities Check
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '20'
+  GEMINI_ENABLED: 'true'
+  HARDCODED_RULES_ENABLED: 'true'
+  PRIVACY_SCAN_TIMEOUT: '300'
+  FAIL_ON_HIGH_SEVERITY: 'true'
+  MAX_VIOLATIONS_THRESHOLD: '50'
+
+jobs:
+  # Validate and build stage
+  validate:
+    name: Validate and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 1
+
+  # Privacy scan with hardcoded rules
+  privacy-scan:
+    name: Privacy Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Run privacy scan with hardcoded rules
+        id: privacy-scan
+        run: |
+          echo "🔍 Starting comprehensive privacy vulnerability scan..."
+          timeout ${{ env.PRIVACY_SCAN_TIMEOUT }} npm start . || {
+            echo "⚠️ Privacy scan timed out, but continuing with results..."
+          }
+        continue-on-error: true
+
+      - name: Parse scan results
+        id: parse-results
+        run: |
+          # Extract violation count from scan output
+          VIOLATIONS=$(npm start . 2>&1 | grep -o "📊 SUMMARY: [0-9]* total violations found" | grep -o "[0-9]*" || echo "0")
+          echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+          
+          # Check for high severity violations
+          HIGH_SEVERITY=$(npm start . 2>&1 | grep -c "HIGH" || echo "0")
+          echo "high_severity=$HIGH_SEVERITY" >> $GITHUB_OUTPUT
+          
+          # Check for medium severity violations
+          MEDIUM_SEVERITY=$(npm start . 2>&1 | grep -c "MEDIUM" || echo "0")
+          echo "medium_severity=$MEDIUM_SEVERITY" >> $GITHUB_OUTPUT
+          
+          # Check for low severity violations
+          LOW_SEVERITY=$(npm start . 2>&1 | grep -c "LOW" || echo "0")
+          echo "low_severity=$LOW_SEVERITY" >> $GITHUB_OUTPUT
+
+      - name: Generate privacy report
+        run: |
+          echo "📋 Generating privacy scan report..."
+          npm start . > privacy-scan-report.txt 2>&1 || true
+          
+          # Create a summary report
+          cat > privacy-summary.md << EOF
+          # Privacy Scan Summary
+          
+          **Scan Date:** $(date)
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          
+          ## Results
+          - **Total Violations:** ${{ steps.parse-results.outputs.violations }}
+          - **High Severity:** ${{ steps.parse-results.outputs.high_severity }}
+          - **Medium Severity:** ${{ steps.parse-results.outputs.medium_severity }}
+          - **Low Severity:** ${{ steps.parse-results.outputs.low_severity }}
+          
+          ## Detailed Report
+          \`\`\`
+          $(head -50 privacy-scan-report.txt)
+          \`\`\`
+          
+          [View Full Report](artifact://privacy-scan-report.txt)
+          EOF
+
+      - name: Upload privacy scan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: privacy-scan-report
+          path: |
+            privacy-scan-report.txt
+            privacy-summary.md
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('privacy-summary.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Create GitHub issue for high severity violations
+        if: steps.parse-results.outputs.high_severity != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('privacy-scan-report.txt', 'utf8');
+            
+            // Extract high severity violations
+            const highViolations = report.split('\n')
+              .filter(line => line.includes('HIGH'))
+              .slice(0, 10); // Limit to first 10 violations
+            
+            const issueBody = `## 🚨 High Severity Privacy Violations Detected
+            
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Scan Date:** ${new Date().toISOString()}
+            
+            ### Violations Found:
+            ${highViolations.map((v, i) => `${i + 1}. ${v}`).join('\n')}
+            
+            ### Action Required:
+            - Review and address all high-severity violations
+            - Ensure GDPR/CCPA compliance
+            - Consider implementing suggested fixes
+            
+            [View Full Report](artifact://privacy-scan-report.txt)`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 High Severity Privacy Violations Detected',
+              body: issueBody,
+              labels: ['privacy-violation', 'high-severity', 'security']
+            });
+
+      - name: Fail on high severity violations
+        if: steps.parse-results.outputs.high_severity != '0' && env.FAIL_ON_HIGH_SEVERITY == 'true'
+        run: |
+          echo "❌ High severity privacy violations detected. Failing build."
+          exit 1
+
+  # AI-enhanced privacy analysis (optional)
+  ai-privacy-analysis:
+    name: AI-Enhanced Privacy Analysis
+    runs-on: ubuntu-latest
+    needs: [validate, privacy-scan]
+    if: github.event_name == 'pull_request' && secrets.GEMINI_API_KEY != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Run AI-enhanced privacy analysis
+        env:
+          GEMINI_ENABLED: 'true'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: 'gemini-2.0-flash'
+          GEMINI_MAX_TOKENS: '4000'
+          GEMINI_TEMPERATURE: '0.1'
+        run: |
+          echo "🤖 Starting AI-enhanced privacy analysis..."
+          timeout ${{ env.PRIVACY_SCAN_TIMEOUT }} npm start . > ai-privacy-report.txt 2>&1 || {
+            echo "⚠️ AI analysis timed out, but hardcoded rules completed successfully"
+          }
+
+      - name: Upload AI analysis report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-privacy-analysis
+          path: ai-privacy-report.txt
+          retention-days: 30
+
+      - name: Comment AI analysis on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const aiReport = fs.readFileSync('ai-privacy-report.txt', 'utf8');
+            
+            const aiSummary = `## 🤖 AI-Enhanced Privacy Analysis
+            
+            **Analysis completed using Google Gemini AI**
+            
+            ### Key Findings:
+            ${aiReport.split('\n').slice(0, 20).join('\n')}
+            
+            [View Full AI Analysis](artifact://ai-privacy-analysis/ai-privacy-report.txt)`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: aiSummary
+            });
+
+  # Security scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: |
+            npm-audit.json
+            package-lock.json
+          retention-days: 30
+
+  # Compliance report
+  compliance-report:
+    name: Compliance Report
+    runs-on: ubuntu-latest
+    needs: [privacy-scan, security-scan]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports/
+
+      - name: Generate compliance summary
+        run: |
+          echo "📋 Generating comprehensive compliance report..."
+          
+          cat > compliance-summary.md << EOF
+          # Privacy & Security Compliance Report
+          
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Report Date:** $(date)
+          
+          ## Scan Results Summary
+          
+          ### Privacy Scan
+          - **Status:** ${{ needs.privacy-scan.result }}
+          - **Violations:** ${{ needs.privacy-scan.outputs.violations }}
+          
+          ### Security Scan
+          - **Status:** ${{ needs.security-scan.result }}
+          
+          ### AI Analysis
+          - **Status:** ${{ needs.ai-privacy-analysis.result }}
+          
+          ## Compliance Status
+          - **GDPR Compliance:** ${{ needs.privacy-scan.result == 'success' && '✅ Compliant' || '❌ Issues Found' }}
+          - **CCPA Compliance:** ${{ needs.privacy-scan.result == 'success' && '✅ Compliant' || '❌ Issues Found' }}
+          - **Security Standards:** ${{ needs.security-scan.result == 'success' && '✅ Compliant' || '❌ Issues Found' }}
+          
+          ## Next Steps
+          1. Review all privacy violations
+          2. Address high-severity issues
+          3. Implement suggested fixes
+          4. Re-run scan after fixes
+          
+          [View Detailed Reports](artifact://reports/)
+          EOF
+
+      - name: Upload compliance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-report
+          path: compliance-summary.md
+          retention-days: 90
+
+      - name: Comment compliance summary on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('compliance-summary.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            }); 

@@ -1,0 +1,71 @@
+# Privacy Guardian Agents GitLab CI/CD Catalog Component
+# Include this in any GitLab project to add privacy vulnerability scanning
+
+.privacy_scan:
+  stage: test
+  image: node:20
+  script:
+    - echo "🔒 Running Privacy Guardian Agents scan..."
+    - npm install -g privacy-vulnerability-checker
+    - npm start ${PROJECT_PATH:-.}
+  variables:
+    PROJECT_PATH: "."
+    GEMINI_ENABLED: "false"
+  artifacts:
+    paths:
+      - privacy-scan-results.json
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+.privacy_scan_with_ai:
+  stage: test
+  image: node:20
+  before_script:
+    - echo "🤖 Running Privacy Guardian Agents with AI analysis..."
+    - git clone https://gitlab.com/tnabanitade/privacysdk.git
+    - cd privacysdk
+    - npm ci
+    - npm run build
+  script:
+    - GEMINI_ENABLED=true GEMINI_API_KEY=$GEMINI_API_KEY npm start ${PROJECT_PATH:-.}
+  variables:
+    PROJECT_PATH: "."
+    GEMINI_ENABLED: "true"
+  artifacts:
+    paths:
+      - privacy-violations-report.md
+      - ai-privacy-results.json
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+.privacy_scan_full_integration:
+  stage: test
+  image: node:20
+  before_script:
+    - echo "🔒 Running Privacy Guardian Agents with full GitLab integration..."
+    - git clone https://gitlab.com/tnabanitade/privacysdk.git
+    - cd privacysdk
+    - npm ci
+    - npm run build
+  script:
+    - bash scripts/privacy-gitlab-integration.sh
+  variables:
+    PROJECT_PATH: "."
+    GITLAB_TOKEN: $GITLAB_TOKEN
+    GEMINI_ENABLED: "true"
+    GEMINI_API_KEY: $GEMINI_API_KEY
+  artifacts:
+    paths:
+      - privacy-violations-report.md
+      - ai-privacy-results.json
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop 

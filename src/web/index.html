@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Guardian Agents - Privacy Vulnerabilities Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .options-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .option-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .option-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .scan-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .scan-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 200px;
+        }
+
+        .results-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .violation {
+            background: white;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .violation h4 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
+        .violation .file-info {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .violation .severity-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .violation .severity-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .violation .severity-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .violation .fix-code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .violation pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .success {
+            text-align: center;
+            color: #28a745;
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+
+        .file-info {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #155724;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Privacy Guardian Agents</h1>
+            <p>AI-Powered Privacy Vulnerabilities Checker</p>
+        </div>
+
+        <div class="main">
+            <button class="upload-btn" style="float:right;margin-bottom:10px;" onclick="toggleGeminiSettings()">⚙️ Gemini AI Settings</button>
+            <div id="geminiSettingsBackdrop" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(44,62,80,0.35); z-index:99;"></div>
+            <div id="geminiSettingsPanel" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; max-width: 90vw; background:#f8f9fa; border-radius:10px; padding:20px; border:1px solid #e9ecef; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.15);">
+                <button onclick="toggleGeminiSettings()" style="float:right; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#888;">&times;</button>
+                <h3>Gemini AI / Vertex AI Settings</h3>
+                <label>Gemini API Key:<br>
+                    <input type="text" id="geminiApiKey" style="width:100%;padding:8px;margin-bottom:10px;">
+                </label><br>
+                <label>Vertex AI Project ID:<br>
+                    <input type="text" id="vertexProjectId" style="width:100%;padding:8px;margin-bottom:10px;">
+                </label><br>
+                <label>Vertex AI Location:<br>
+                    <input type="text" id="vertexLocation" placeholder="us-central1" style="width:100%;padding:8px;margin-bottom:10px;">
+                </label><br>
+                <button class="upload-btn" onclick="saveGeminiSettings()">Save Settings</button>
+                <span id="geminiSettingsSaved" style="color:green;display:none;margin-left:10px;">Saved!</span>
+            </div>
+            <div class="upload-section" id="uploadSection">
+                <h3>📁 Upload Your Code</h3>
+                <div style="margin-bottom: 10px;">
+                    Drag and drop files or click to browse
+                </div>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".js,.ts,.java,.py,.go,.cs,.php,.rb,.swift,.kt,.rs,.scala">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose Files
+                </button>
+                <div id="fileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <div class="options-section">
+                <div class="option-card">
+                    <h3>🤖 AI-Powered Scanning</h3>
+                    <p>Use Google Gemini AI for intelligent privacy analysis</p>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="aiEnabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="option-card">
+                    <h3>🔧 Hardcoded Rules</h3>
+                    <p>Use traditional pattern-based detection</p>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hardcodedEnabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="scan-btn" id="scanBtn" onclick="startScan()">
+                🔍 Start Privacy Scan
+            </button>
+
+            <div class="results-section">
+                <h3>📊 Scan Results</h3>
+                <div id="results">
+                    <p style="text-align: center; color: #6c757d;">
+                        Upload files and click "Start Privacy Scan" to begin
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Privacy Guardian Agents - Open Source Privacy Vulnerabilities Checker</p>
+            <p>Powered by Google Gemini AI and GitLab CI/CD</p>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            uploadedFiles = Array.from(files);
+            displayFileInfo();
+        }
+
+        function displayFileInfo() {
+            const fileInfo = document.getElementById('fileInfo');
+            if (uploadedFiles.length > 0) {
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <strong>📁 ${uploadedFiles.length} file(s) selected:</strong><br>
+                    ${uploadedFiles.map(f => f.name).join(', ')}
+                `;
+            } else {
+                fileInfo.style.display = 'none';
+            }
+        }
+
+        document.getElementById('geminiSettingsBackdrop').onclick = function() {
+            toggleGeminiSettings();
+        };
+
+        function toggleGeminiSettings() {
+            const panel = document.getElementById('geminiSettingsPanel');
+            const backdrop = document.getElementById('geminiSettingsBackdrop');
+            const isOpen = panel.style.display === 'block';
+            if (isOpen) {
+                panel.style.display = 'none';
+                backdrop.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                panel.style.display = 'block';
+                backdrop.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                // Load from localStorage
+                document.getElementById('geminiApiKey').value = localStorage.getItem('geminiApiKey') || '';
+                document.getElementById('vertexProjectId').value = localStorage.getItem('vertexProjectId') || '';
+                document.getElementById('vertexLocation').value = localStorage.getItem('vertexLocation') || '';
+            }
+        }
+
+        function saveGeminiSettings() {
+            localStorage.setItem('geminiApiKey', document.getElementById('geminiApiKey').value);
+            localStorage.setItem('vertexProjectId', document.getElementById('vertexProjectId').value);
+            localStorage.setItem('vertexLocation', document.getElementById('vertexLocation').value);
+            document.getElementById('geminiSettingsSaved').style.display = 'inline';
+            setTimeout(() => {
+                document.getElementById('geminiSettingsSaved').style.display = 'none';
+            }, 1500);
+        }
+
+        async function startScan() {
+            if (uploadedFiles.length === 0) {
+                alert('Please upload files first');
+                return;
+            }
+
+            const scanBtn = document.getElementById('scanBtn');
+            const results = document.getElementById('results');
+            
+            scanBtn.disabled = true;
+            scanBtn.textContent = '🔍 Scanning...';
+            
+            results.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing your code for privacy vulnerabilities...</p>
+                    <p>This may take a few moments</p>
+                </div>
+            `;
+
+            try {
+                const formData = new FormData();
+                uploadedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+                
+                formData.append('aiEnabled', document.getElementById('aiEnabled').checked);
+                formData.append('hardcodedEnabled', document.getElementById('hardcodedEnabled').checked);
+                // Add Gemini/Vertex settings from localStorage
+                formData.append('geminiApiKey', localStorage.getItem('geminiApiKey') || '');
+                formData.append('vertexProjectId', localStorage.getItem('vertexProjectId') || '');
+                formData.append('vertexLocation', localStorage.getItem('vertexLocation') || '');
+
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="loading">
+                        <p style="color: #dc3545;">❌ Error: ${error.message}</p>
+                        <p>Please try again or check your connection</p>
+                    </div>
+                `;
+            } finally {
+                scanBtn.disabled = false;
+                scanBtn.textContent = '🔍 Start Privacy Scan';
+            }
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            
+            if (data.violations && data.violations.length > 0) {
+                let html = `<h4>Found ${data.violations.length} privacy violation(s):</h4>`;
+                data.violations.forEach(violation => {
+                    // Determine severity class
+                    let severityClass = 'severity-medium';
+                    let severityText = violation.severity || 'MEDIUM';
+                    if (severityText.toUpperCase() === 'HIGH') {
+                        severityClass = 'severity-high';
+                    } else if (severityText.toUpperCase() === 'MEDIUM') {
+                        severityClass = 'severity-medium';
+                    } else if (severityText.toUpperCase() === 'LOW') {
+                        severityClass = 'severity-low';
+                    }
+                    
+                    // Format fix as code if it contains code-like content
+                    let fixDisplay = violation.fix || "N/A";
+                    if (fixDisplay !== "N/A" && (fixDisplay.includes('const ') || fixDisplay.includes('let ') || fixDisplay.includes('var ') || fixDisplay.includes('process.env') || fixDisplay.includes('import ') || fixDisplay.includes('require('))) {
+                        fixDisplay = `<div class="fix-code">${fixDisplay}</div>`;
+                    }
+                    
+                    html += `
+                        <div class="violation">
+                            <h4>${violation.type || "Privacy Violation"}</h4>
+                            <div class="file-info">
+                                <strong>File:</strong> ${violation.file} | <strong>Line:</strong> ${violation.line}
+                            </div>
+                            <p><strong>Severity:</strong> <span class="${severityClass}">${severityText}</span></p>
+                            <p><strong>Description:</strong> ${violation.description || "N/A"}</p>
+                            <p><strong>Fix:</strong></p>
+                            ${fixDisplay}
+                        </div>
+                    `;
+                });
+                results.innerHTML = html;
+            } else {
+                results.innerHTML = `
+                    <div class="success">
+                        <h3>✅ No Privacy Violations Found!</h3>
+                        <p>Your code appears to be privacy-compliant</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
