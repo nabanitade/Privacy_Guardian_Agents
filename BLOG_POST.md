@@ -337,6 +337,6 @@ The system's ability to detect 50+ violation types across 12 programming languag
 
 ---
 
-*This blog post was created for the purposes of entering the Google Cloud Agent Development Kit (ADK) Hackathon. Follow the conversation with #adkhackathon and explore the full project at [GitHub Repository URL].*
+*This blog post was created for the purposes of entering the Google Cloud Agent Development Kit (ADK) Hackathon. Follow the conversation with #adkhackathon and explore the full project at https://github.com/nabanitade/Privacy_Guardian_Agents and https://privacylicense.ai/.*
 
 **Tags**: #adkhackathon #googlecloud #vertexai #agentdevelopmentkit #privacy #ai #multilagent #gdpr #compliance #devsecops 
