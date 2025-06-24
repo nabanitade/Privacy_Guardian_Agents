@@ -5,8 +5,9 @@
 **Privacy Guardian Agents** by Privacy License (https://www.privacylicense.ai) is a multi-agent privacy enforcement system built for the Google Cloud Agent Development Kit (ADK) Hackathon. It includes collaborative, event-driven system of AI agents that autonomously scan, analyze, and remediate privacy vulnerabilities in codebases.
 
 - **Multi-agent orchestration** (Python, ADK-style)
-- **Google Cloud integration**: Vertex AI (Gemini), Cloud Run, Cloud Storage
+- **Google Cloud integration**: Vertex AI (Gemini), Cloud Run, Cloud Storage, Bigquery, Gemini, ADK, Vertex AI, Secret Manager, Cloud Logging, Cloud monitoring, Cloud Build, Cloud Load balancing, Cloud DNS, Cloud Pub/sub, Cloud Security Command Center, Cloud Asset Inventory, Cloud IAM, Cloud Security etc
 - **Modern web UI** for real-time scanning and results
+- **Supported Programming language scanning** : 12+ Programming languages like Python, Typescript, Javascript, Java, Go, C#, PHP, Ruby, Swift, Kotlin, Rust, Scala etc. 
 - **Event-driven, modular, hackathon-ready**
 
 ### 📚 **Documentation & Resources**
